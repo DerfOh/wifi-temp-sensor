@@ -34,9 +34,7 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 //length should be max size + 1
-char mqtt_server[40];
-char mqtt_port[6] = "8080";
-char api_token[34] = "YOUR_APITOKEN";
+char sensor_name[40] = "sensor1";
 //default custom static IP
 char static_ip[16] = "10.0.1.56";
 char static_gw[16] = "10.0.1.1";
@@ -64,7 +62,9 @@ void handleRoot() {
   sensors_event_t event;
   dht.temperature().getEvent(&event);
   digitalWrite(led, 1);
-  String message = "event_temperature{name=\"sensor3\"} ";
+  String message = "event_temperature{name=\"";
+  message += sensor_name;
+  message += "\"} ";
   if (isnan(event.temperature)) {
     Serial.println(F("Error reading temperature!"));
   }
@@ -83,7 +83,9 @@ void handleRoot() {
     Serial.print(F("Humidity: "));
     Serial.print(event.relative_humidity);
     Serial.println(F("%"));
-    message += "\nevent_relative_humidity{name=\"sensor3\"} ";
+    message += "\nevent_relative_humidity{name=\"";
+    message += sensor_name;
+    message += "\"} ";
     message += event.relative_humidity;
   }
 
@@ -113,12 +115,9 @@ void setup(void) {
   Serial.begin(115200);
   Serial.println();
 
-  //clean FS, for testing
-  //SPIFFS.format();
-  //reset settings - for testing
-  //wifiManager.resetSettings();
+  SPIFFS.format(); //clean FS, for testing
 
-  
+
   Serial.println("\n Starting");
   ////////////////////
   // wifimanager
@@ -151,9 +150,7 @@ void setup(void) {
 #endif
           Serial.println("\nparsed json");
 
-          strcpy(mqtt_server, json["mqtt_server"]);
-          strcpy(mqtt_port, json["mqtt_port"]);
-          strcpy(api_token, json["api_token"]);
+          strcpy(sensor_name, json["sensor_name"]);
 
           if (json["ip"]) {
             Serial.println("setting custom ip from config");
@@ -174,20 +171,19 @@ void setup(void) {
   }
   //end read
   Serial.println(static_ip);
-  Serial.println(api_token);
-  Serial.println(mqtt_server);
+  Serial.println(sensor_name);
 
 
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_mqtt_server("server", "mqtt server", mqtt_server, 40);
-  WiFiManagerParameter custom_mqtt_port("port", "mqtt port", mqtt_port, 5);
-  WiFiManagerParameter custom_api_token("apikey", "API token", api_token, 34);
+  WiFiManagerParameter custom_sensor_name("server", "sensor name", sensor_name, 40);
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
+
+  wifiManager.resetSettings(); //reset settings - for testing
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -201,9 +197,7 @@ void setup(void) {
   wifiManager.setSTAStaticIPConfig(_ip, _gw, _sn);
 
   //add all your parameters here
-  wifiManager.addParameter(&custom_mqtt_server);
-  wifiManager.addParameter(&custom_mqtt_port);
-  wifiManager.addParameter(&custom_api_token);
+  wifiManager.addParameter(&custom_sensor_name);
   
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
@@ -230,9 +224,7 @@ void setup(void) {
   Serial.println("connected...yeey :)");
 
   //read updated parameters
-  strcpy(mqtt_server, custom_mqtt_server.getValue());
-  strcpy(mqtt_port, custom_mqtt_port.getValue());
-  strcpy(api_token, custom_api_token.getValue());
+  strcpy(sensor_name, custom_sensor_name.getValue());
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
@@ -243,9 +235,7 @@ void setup(void) {
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
 #endif
-    json["mqtt_server"] = mqtt_server;
-    json["mqtt_port"] = mqtt_port;
-    json["api_token"] = api_token;
+    json["sensor_name"] = sensor_name;
 
     json["ip"] = WiFi.localIP().toString();
     json["gateway"] = WiFi.gatewayIP().toString();
