@@ -24,7 +24,7 @@ jobs:
       LIBRARIES: |
         # Install the Arduino_ConnectionHandler library from the repository
         - source-path: ./
-        - name: ESP8266WiFi
+        # - name: ESP8266WiFi
         - name: WiFiClient
         - name: ESP8266WebServer
         - name: ESP8266mDNS
