@@ -24,12 +24,11 @@ jobs:
             # This is formatted as a YAML list, which makes it possible to have multiple sketch paths if needed.
             - ./
           libraries: |
-            ESP8266WiFi.h
-            ESP8266WiFi.h
-            WiFiClient.h
-            ESP8266WebServer.h
-            ESP8266mDNS.h
-            FS.h
-            WiFiManager.h
-            include SPIFFS.h
-            ArduinoJson.h
+            ESP8266WiFi
+            WiFiClient
+            ESP8266WebServer
+            ESP8266mDNS
+            FS
+            WiFiManager
+            include SPIFFS
+            ArduinoJson
